@@ -1,0 +1,2 @@
+# SkryptyLinux
+Moje skrypty automatyzacji
