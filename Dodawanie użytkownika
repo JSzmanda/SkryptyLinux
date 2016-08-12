@@ -1,0 +1,51 @@
+#!/bin/bash
+## Instalacja pakietu sudo dla nadania uprawnień użytkownikowi
+#{
+apt-get update
+apt-get install sudo ftp -y
+#} &> /dev/null
+## Dodajemu nowego użytkownika do systemu
+useradd -d /home/j.szmanda/ -m -s /bin/bash j.szmanda
+pass=`cat /dev/urandom | tr -cd '[:alnum:]' | fold -w 24 | head -n 1`
+## Modyfikujemy sudoers
+mkdir -p "/etc/sudoers.d/"
+touch "/etc/sudoers.d/jszmanda"
+echo '########## User j.szmanda ##########' >> /etc/sudoers.d/jszmanda
+echo 'j.szmanda    ALL = NOPASSWD: ALL' >> /etc/sudoers.d/jszmanda
+echo '########## User j.szmanda ##########' >> /etc/sudoers.d/jszmanda
+## Tworzymy katalog .ssh dla nowego uzytkownika
+mkdir -p /home/j.szmanda/.ssh
+## Dodajemu klucz publiczny dla użytkownika
+wget -O /home/j.szmanda/.ssh/authorized_keys http://auth.szmanda.info/id_rsa.txt
+chown -R j.szmanda:j.szmanda /home/j.szmanda/.ssh
+chown j.szmanda:j.szmanda /home/j.szmanda/.ssh/authorized_keys
+chmod 700 /home/j.szmanda/.ssh
+chmod 600 /home/j.szmanda/.ssh/*
+## Tworzenie pliku
+touch "sshconf.txt"
+cat /etc/ssh/sshd_config | grep -i "Port " > sshconf.txt
+hostname -I >> sshconf.txt
+## Sekcja FTP
+HOST="AdresFTP"
+USER="login"
+PASSWD="hasło"
+FILE="sshconf.txt"
+REMOTEPATH="/"
+
+ftp -n $HOST <<END_SCRIPT
+quote USER $USER
+quote PASS $PASSWD
+cd $REMOTEPATH
+delete $FILE
+put $FILE
+quit
+END_SCRIPT
+## Konfiguracja PAM w Debianie 8
+sed -i -e 's/PAM no/PAM yes/g' /etc/ssh/sshd_config
+echo 'UseDNS no' >> /etc/ssh/sshd_config
+/etc/init.d/ssh restart
+rm  sshconf.txt
+rm j.szmanda.sh
+echo "Użytkownik dodany poprawnie"
+exit 0
+## Koniec działania skryptu
