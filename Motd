@@ -1,0 +1,18 @@
+#!/bin/sh
+apt-get install lsb-release
+apt-get install figlet
+mkdir /etc/update-motd.d/
+cd /etc/update-motd.d/
+touch 00-header && touch 10-sysinfo && touch 90-footer
+chmod +x /etc/update-motd.d/*
+rm /etc/motd
+ln -s /var/run/motd /etc/motd
+cd /root/
+wget http://auth.szmanda.info/00-header
+wget http://auth.szmanda.info/10-sysinfo
+wget http://auth.szmanda.info/90-footer
+cat 00-header > /etc/update-motd.d/00-header
+cat 10-sysinfo > /etc/update-motd.d/10-sysinfo
+cat 90-footer > /etc/update-motd.d/90-footer
+rm 00-* 10-* 90-*
+exit 0
